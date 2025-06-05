@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <title>Калькулятор</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#3367D6">
+    <link rel="manifest" href="manifest.json">
+<style>
+	body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+#install {
+    margin: 20px 0;
+    padding: 10px 20px;
+    background-color: #3367D6;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-gap: 10px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.screen {
+    grid-column: 1 / span 5;
+    background-color: #fff;
+    padding: 20px;
+    text-align: right;
+    font-size: 2em;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.button {
+    padding: 20px;
+    font-size: 1.2em;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #e0e0e0;
+    transition: background-color 0.2s;
+}
+
+.button:hover {
+    background-color: #d0d0d0;
+}
+
+.button:active {
+    background-color: #c0c0c0;
+}
+
+.bnum {
+    background-color: #f8f8f8;
+}
+
+.deist {
+    background-color: #ff9800;
+    color: white;
+}
+
+.deist:hover {
+    background-color: #f57c00;
+}
+
+.func {
+    background-color: #9e9e9e;
+    color: white;
+}
+
+.func:hover {
+    background-color: #757575;
+}
+
+.beq {
+    background-color: #4caf50;
+    color: white;
+}
+
+.beq:hover {
+    background-color: #388e3c;
+}
+</style>
+
+</head>
+<body>
+    <button id="install" class="button" hidden>Установить на телефон</button>
+    <div class="container">
+        <div class="screen" id="display">0</div>
+        
+        <button class="button bnum">7</button>
+        <button class="button bnum">8</button>
+        <button class="button bnum">9</button>
+        <button class="button func bC">C</button>
+        <button class="button func bCE">CE</button>
+        
+        <button class="button bnum">4</button>
+        <button class="button bnum">5</button>
+        <button class="button bnum">6</button>
+        <button class="button deist bplus">+</button>
+        <button class="button deist bmin">-</button>
+        
+        <button class="button bnum">1</button>
+        <button class="button bnum">2</button>
+        <button class="button bnum">3</button>
+        <button class="button deist bmul">×</button>
+        <button class="button deist bdiv">÷</button>
+        
+        <button class="button b0 bnum">0</button>
+        <button class="button bpoint">.</button>
+        <button class="button beq">=</button>
+        <button class="button func bMS">MS</button>
+        <button class="button func bMR">MR</button>
+    </div>
+
+    <script>
+        // Логика калькулятора
+        class Calculator {
+            constructor() {
+                this.currentValue = '0';
+                this.previousValue = null;
+                this.operation = null;
+                this.memory = 0;
+                this.display = document.getElementById('display');
+                this.setupEventListeners();
+                this.updateDisplay();
+            }
+
+            updateDisplay() {
+                this.display.textContent = this.currentValue;
+            }
+
+            clear() {
+                this.currentValue = '0';
+                this.previousValue = null;
+                this.operation = null;
+                this.updateDisplay();
+            }
+
+            clearEntry() {
+                this.currentValue = '0';
+                this.updateDisplay();
+            }
+
+            appendNumber(number) {
+                if (number === '.' && this.currentValue.includes('.')) return;
+                if (this.currentValue === '0' && number !== '.') {
+                    this.currentValue = number;
+                } else {
+                    this.currentValue += number;
+                }
+                this.updateDisplay();
+            }
+
+            setOperation(op) {
+                if (this.currentValue === '0' && this.previousValue === null) return;
+                
+                if (this.operation !== null) {
+                    this.calculate();
+                }
+                
+                this.operation = op;
+                this.previousValue = this.currentValue;
+                this.currentValue = '0';
+            }
+
+            calculate() {
+                let result;
+                const prev = parseFloat(this.previousValue);
+                const current = parseFloat(this.currentValue);
+                
+                if (isNaN(prev)) return;
+                
+                switch (this.operation) {
+                    case '+':
+                        result = prev + current;
+                        break;
+                    case '-':
+                        result = prev - current;
+                        break;
+                    case '×':
+                        result = prev * current;
+                        break;
+                    case '÷':
+                        result = prev / current;
+                        break;
+                    default:
+                        return;
+                }
+                
+                this.currentValue = result.toString();
+                this.operation = null;
+                this.previousValue = null;
+                this.updateDisplay();
+            }
+
+            memoryStore() {
+                this.memory = parseFloat(this.currentValue);
+            }
+
+            memoryRecall() {
+                this.currentValue = this.memory.toString();
+                this.updateDisplay();
+            }
+
+            setupEventListeners() {
+                document.querySelectorAll('.bnum').forEach(button => {
+                    button.addEventListener('click', () => {
+                        this.appendNumber(button.textContent);
+                    });
+                });
+
+                document.querySelectorAll('.deist').forEach(button => {
+                    button.addEventListener('click', () => {
+                        this.setOperation(button.textContent);
+                    });
+                });
+
+                document.querySelector('.beq').addEventListener('click', () => {
+                    this.calculate();
+                });
+
+                document.querySelector('.bC').addEventListener('click', () => {
+                    this.clear();
+                });
+
+                document.querySelector('.bCE').addEventListener('click', () => {
+                    this.clearEntry();
+                });
+
+                document.querySelector('.bMS').addEventListener('click', () => {
+                    this.memoryStore();
+                });
+
+                document.querySelector('.bMR').addEventListener('click', () => {
+                    this.memoryRecall();
+                });
+
+                document.querySelector('.bpoint').addEventListener('click', () => {
+                    this.appendNumber('.');
+                });
+            }
+        }
+
+        // Инициализация калькулятора при загрузке страницы
+        window.onload = () => {
+        new Calculator();
+
+        // PWA установка
+        let installPrompt = null;
+        const installButton = document.getElementById('install');
+
+        // Показываем кнопку только если PWA можно установить
+        window.addEventListener('beforeinstallprompt', (event) => {
+            event.preventDefault();
+            installPrompt = event;
+            installButton.style.display = 'block'; // Изменяем стиль вместо атрибута
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (!installPrompt) return;
+            try {
+                const result = await installPrompt.prompt();
+                console.log(`Результат установки: ${result.outcome}`);
+                if (result.outcome === 'accepted') {
+                    installButton.style.display = 'none';
+                }
+            } catch (err) {
+                console.error('Ошибка установки:', err);
+            }
+        });
+
+        // Скрываем кнопку после установки
+        window.addEventListener('appinstalled', () => {
+            installPrompt = null;
+            installButton.style.display = 'none';
+        });
+
+        // Регистрация Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('serviceworker.js')
+                .then(reg => console.log('Service Worker зарегистрирован'))
+                .catch(err => console.error('Ошибка регистрации SW:', err));
+        }
+    };
+    </script>
+</body>
+</html>
